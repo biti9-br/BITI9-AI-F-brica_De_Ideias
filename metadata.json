@@ -1,0 +1,6 @@
+{
+  "name": "Fábrica de Ideias - Convite do Inovador Robbi9",
+  "description": "Convite surpresa e formulário interativo do Robbi9 para o Inovador das próximas semanas na Fábrica de Ideias da Biti9.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
