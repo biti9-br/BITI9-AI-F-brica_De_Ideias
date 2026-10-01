@@ -1,43 +1,45 @@
 # Multi-stage Dockerfile para aplicação Full-Stack Vite + Express
-# Porta padrão configurada: 8080
+# Porta configurada: 8080
 
 # ==========================================
-# Etapa 1: Build do Frontend e Dependências
+# Estágio 1: Build do Frontend e Dependências
 # ==========================================
 FROM node:22-alpine AS builder
 
 WORKDIR /app
 
-# Instalação das dependências
+# Copia arquivos de definição de pacotes e instala todas as dependências
 COPY package*.json ./
 RUN npm ci
 
-# Cópia do código e geração da build estática (dist/)
+# Copia todo o código-fonte da aplicação
 COPY . .
+
+# Compila o frontend React com Vite para a pasta dist/
 RUN npm run build
 
 # ==========================================
-# Etapa 2: Ambiente de Execução (Produção)
+# Estágio 2: Imagem Final de Produção (Leve e Segura)
 # ==========================================
 FROM node:22-alpine AS runner
 
 WORKDIR /app
 
-# Configurações de ambiente para produção na porta 8080
+# Variáveis de ambiente padrão de produção
 ENV NODE_ENV=production
 ENV PORT=8080
 
-# Instalação apenas das dependências de produção e tsx para execução do server.ts
+# Instala apenas dependências de produção e o tsx para rodar o backend TypeScript
 COPY package*.json ./
 RUN npm ci --omit=dev && npm install -g tsx
 
-# Cópia dos artefatos construídos e arquivos do servidor
+# Copia o build estático e os arquivos do servidor a partir do estágio de build
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/server.ts ./server.ts
 COPY --from=builder /app/tsconfig.json ./tsconfig.json
 
-# Exposição da porta 8080
+# Exposição da porta 8080 para o container
 EXPOSE 8080
 
-# Inicialização do servidor em produção
+# Comando para iniciar o servidor Full-Stack
 CMD ["tsx", "server.ts"]
