@@ -8,9 +8,11 @@ FROM node:22-alpine AS builder
 
 WORKDIR /app
 
-# Copia arquivos de definição de pacotes e instala todas as dependências
+# Copia arquivos de pacotes
 COPY package*.json ./
-RUN npm ci
+
+# Instala todas as dependências com tolerância para lockfiles
+RUN npm ci || npm install
 
 # Copia todo o código-fonte da aplicação
 COPY . .
@@ -29,9 +31,11 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=8080
 
-# Instala apenas dependências de produção e o tsx para rodar o backend TypeScript
+# Copia package.json e package-lock.json
 COPY package*.json ./
-RUN npm ci --omit=dev && npm install -g tsx
+
+# Instala apenas dependências de produção necessárias
+RUN npm ci --omit=dev || npm install --omit=dev
 
 # Copia o build estático e os arquivos do servidor a partir do estágio de build
 COPY --from=builder /app/dist ./dist
@@ -42,4 +46,4 @@ COPY --from=builder /app/tsconfig.json ./tsconfig.json
 EXPOSE 8080
 
 # Comando para iniciar o servidor Full-Stack
-CMD ["tsx", "server.ts"]
+CMD ["npx", "tsx", "server.ts"]
